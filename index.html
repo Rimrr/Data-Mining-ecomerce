@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGenStore - Conversion Intelligence Solution</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeInDown {
+            from { transform: translateY(-15px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-fade-down { animation: fadeInDown 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-black tracking-tight text-blue-500 flex items-center gap-2 cursor-pointer" onclick="filterCategory('all')">
+                        <i class="fa-solid fa-brain-circuit text-blue-400"></i> NextGen<span class="text-white font-normal text-lg">Store</span>
+                    </span>
+                </div>
+                <div class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <button onclick="filterCategory('all')" id="btn-all" class="nav-link px-4 py-2 rounded-lg text-blue-400 bg-slate-800 transition-colors cursor-pointer">Boutique</button>
+                    <button onclick="filterCategory('computers')" id="btn-computers" class="nav-link px-4 py-2 rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer">Ordinateurs</button>
+                    <button onclick="filterCategory('screens')" id="btn-screens" class="nav-link px-4 py-2 rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer">Écrans</button>
+                    <button onclick="filterCategory('accessories')" id="btn-accessories" class="nav-link px-4 py-2 rounded-lg text-slate-300 hover:text-white transition-colors cursor-pointer">Accessoires</button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleCartModal()" class="relative p-2 text-slate-300 hover:text-white transition-colors cursor-pointer">
+                        <i class="fa-solid fa-shopping-cart text-xl"></i>
+                        <span id="cart-badge" class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow hidden">0</span>
+                    </button>
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-semibold border border-slate-600">H</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="social-proof-banner" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-3 text-center text-sm font-medium animate-fade-down shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
+            <i class="fa-solid fa-fire text-amber-500 animate-pulse"></i>
+            <span><b>Alerte :</b> 6 autres utilisateurs examinent actuellement ces produits. Stocks limités !</span>
+        </div>
+    </div>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 id="gallery-title" class="text-3xl font-extrabold text-slate-900 tracking-tight">Composants High-Tech Premium</h1>
+                <p class="text-slate-500 mt-1">Générez des opportunités de conversion et analysez les déclenchements prédictifs en temps réel.</p>
+            </div>
+            <div id="engine-status-container" class="text-xs font-mono bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 self-start sm:self-center transition-all duration-300">
+                <span id="engine-status-dot" class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 animate-pulse"></span>
+                <span id="engine-status-text">Live Tracking Engine: Diagnostic...</span>
+            </div>
+        </div>
+
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </main>
+
+    <div id="cart-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex justify-end hidden">
+        <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col p-6">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-shopping-bag text-blue-600"></i> Votre Panier</h2>
+                <button onclick="toggleCartModal()" aria-label="Fermer" class="text-slate-400 hover:text-slate-600 text-xl cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="cart-items-container" class="flex-grow overflow-y-auto py-4 space-y-4">
+                <p class="text-slate-400 text-center py-8">Votre panier est vide.</p>
+            </div>
+            <div class="border-t border-slate-200 pt-4">
+                <div class="flex justify-between items-center text-lg font-bold text-slate-900 mb-4">
+                    <span>Total Général :</span>
+                    <span id="cart-total">0,00 €</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="clearCart()" class="border border-slate-200 text-slate-600 font-semibold py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-sm cursor-pointer">Vider</button>
+                    <button onclick="checkoutSimulation()" class="bg-blue-600 text-white font-bold py-2.5 rounded-lg hover:bg-blue-700 transition-colors text-sm shadow-xs cursor-pointer">Passer la commande</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 text-center py-5 text-xs border-t border-slate-800 mt-12">
+        &copy; 2026 NextGenStore. Tous droits réservés. Intention Predictor Integration Module.
+    </footer>
+
+    <script>
+        const productsDatabase = [
+            // --- ORDINATEURS ---
+            { id: 1, category: 'computers', label: 'Ordinateurs', name: 'Workstation DevPro 15"', price: 1299, desc: 'Processeur dernière génération, idéal pour le traitement de données massives et l\'exécution de modèles de calcul parallélisés.', img: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=500&auto=format&fit=crop&q=80' },
+            { id: 2, category: 'computers', label: 'Ordinateurs', name: 'UltraBook Air Slim', price: 999, desc: 'Châssis en alliage aéronautique, autonomie de 18 heures, idéal pour les ingénieurs et analystes en déplacement.', img: 'https://images.unsplash.com/photo-1496181130204-755241524eab?w=500&auto=format&fit=crop&q=80' },
+            { id: 3, category: 'computers', label: 'Ordinateurs', name: 'Serveur Tour Edge AI', price: 2499, desc: 'Équipé de puces d\'accélération dédiées pour l\'entraînement local et l\'inférence de modèles profonds.', img: 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=500&auto=format&fit=crop&q=80' },
+            { id: 4, category: 'computers', label: 'Ordinateurs', name: 'PC Gaming & Processing Creator', price: 1799, desc: 'Système thermique liquide avancé, optimisé pour les charges de travail intensives et l\'ingénierie logicielle.', img: 'https://images.unsplash.com/photo-1547082299-de196ea013d6?w=500&auto=format&fit=crop&q=80' },
+            
+            // --- ÉCRANS ---
+            { id: 5, category: 'screens', label: 'Affichage', name: 'Écran UltraWide 34" IPS', price: 449, desc: 'Résolution panoramique 21:9, parfait pour organiser vos fenêtres de terminaux et tableaux de bord de données.', img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=500&auto=format&fit=crop&q=80' },
+            { id: 6, category: 'screens', label: 'Affichage', name: 'Moniteur 4K Studio Designer', price: 599, desc: 'Précision chromatique absolue, traitement antireflet pour une clarté optimale lors des analyses prolongées.', img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80' },
+            { id: 7, category: 'screens', label: 'Affichage', name: 'Écran Vertical CodeMaster 24"', price: 299, desc: 'Pivot ergonomique natif à 90°, optimisé pour l\'inspection de longs scripts structurés et de logs système.', img: 'https://images.unsplash.com/photo-1547119957-637f8679db1e?w=500&auto=format&fit=crop&q=80' },
+            { id: 8, category: 'screens', label: 'Affichage', name: 'Moniteur Incurvé Pro Stream', price: 379, desc: 'Courbure immersive réduisant la fatigue oculaire lors des phases d\'analyse comportementale en direct.', img: 'https://images.unsplash.com/photo-1616763355548-1b606f439f86?w=500&auto=format&fit=crop&q=80' },
+
+            // --- ACCESSOIRES ---
+            { id: 9, category: 'accessories', label: 'Accessoires', name: 'Clavier Mécanique Studio RGB', price: 129, desc: 'Switches linéaires haut de gamme lubrifiés d\'usine offering une réactivité de frappe maximale et fluide.', img: 'https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=500&auto=format&fit=crop&q=80' },
+            { id: 10, category: 'accessories', label: 'Accessoires', name: 'Souris Ergonomique Precision', price: 89, desc: 'Capteur laser haute précision et défilement adaptatif pour parcourir de vastes structures de fichiers.', img: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=500&auto=format&fit=crop&q=80' },
+            { id: 11, category: 'accessories', label: 'Accessoires', name: 'Casque ANC Active Reduction', price: 249, desc: 'Isolation acoustique active haut de gamme pour une concentration absolue au sein des environnements denses.', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=80' },
+            { id: 12, category: 'accessories', label: 'Accessoires', name: 'Station Multiport Aluminium USB-C', price: 59, desc: 'Concentrateur de flux de données matériel étendu, conçu en alliage robuste avec dissipation thermique passive.', img: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=500&auto=format&fit=crop&q=80' }
+        ];
+
+        let cart = [];
+        let metrics = { productViews: 0, addCount: 0, exitRates: 0.02, pageValues: 0.0 };
+        let hasCouponShown = false;
+        let isEligibleForCoupon = false;
+
+        setTimeout(() => {
+            isEligibleForCoupon = true;
+            console.log("⏱️ Éligibilité au module de conversion active.");
+        }, 20000);
+
+        function filterCategory(category) {
+            document.querySelectorAll('.nav-link').forEach(btn => {
+                btn.classList.remove('text-blue-400', 'bg-slate-800');
+                btn.classList.add('text-slate-300', 'hover:text-white');
+            });
+            const activeBtn = document.getElementById(`btn-${category}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-300', 'hover:text-white');
+                activeBtn.classList.add('text-blue-400', 'bg-slate-800');
+            }
+
+            const titleEl = document.getElementById('gallery-title');
+            if(category === 'all') titleEl.innerText = "Composants High-Tech Premium";
+            else if(category === 'computers') titleEl.innerText = "Ordinateurs Fixes & Portables";
+            else if(category === 'screens') titleEl.innerText = "Systèmes d'Affichage Haute Densité";
+            else if(category === 'accessories') titleEl.innerText = "Périphériques & Accessoires Métier";
+
+            renderProducts(category);
+        }
+
+        function renderProducts(filter = 'all') {
+            const container = document.getElementById('products-grid');
+            const filteredList = filter === 'all' ? productsDatabase : productsDatabase.filter(p => p.category === filter);
+
+            container.innerHTML = filteredList.map(p => `
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-shadow product-card animate-fade-down" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+                    <div class="h-44 overflow-hidden bg-slate-100">
+                        <img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <div class="p-4 flex flex-col justify-between h-56">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">${p.label}</span>
+                            <h3 class="text-md font-bold text-slate-900 mt-2 line-clamp-1">${p.name}</h3>
+                            <p class="text-slate-500 text-xs mt-1.5 line-clamp-3">${p.desc}</p>
+                        </div>
+                        <div class="flex items-center justify-between mt-4">
+                            <span class="text-lg font-black text-slate-900">${p.price.toLocaleString('fr-FR')},00 €</span>
+                            <button onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-cart-plus"></i> Ajouter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            attachTrackingEvents();
+        }
+
+        function attachTrackingEvents() {
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    metrics.productViews++;
+                    // Alignement des types de données avec le modèle ML et FastAPI (Pydantic validation)
+                    triggerIAService({
+                        Administrative: 1, Administrative_Duration: 12.0,
+                        Informational: 0, Informational_Duration: 0.0,
+                        ProductRelated: metrics.productViews, ProductRelated_Duration: 45.0,
+                        BounceRates: 0.01, ExitRates: 0.03,
+                        PageValues: metrics.pageValues || 15.0,
+                        SpecialDay: 0.0, 
+                        Month: "June",               // Format String obligatoire
+                        OperatingSystems: 2, Browser: 2, Region: 1, TrafficType: 1, 
+                        VisitorType: "New_Visitor",  // Format String obligatoire
+                        Weekend: 0
+                    });
+                });
+            });
+        }
+
+        document.addEventListener('mouseleave', (e) => {
+            if(e.clientY < 20) {
+                // Alignement des types de données avec le modèle ML et FastAPI (Pydantic validation)
+                triggerIAService({
+                    Administrative: 0, Administrative_Duration: 0.0,
+                    Informational: 0, Informational_Duration: 0.0,
+                    ProductRelated: metrics.productViews, ProductRelated_Duration: 20.0,
+                    BounceRates: 0.08, ExitRates: 0.09,
+                    PageValues: metrics.pageValues, 
+                    SpecialDay: 0.0, 
+                    Month: "June",               // Format String obligatoire
+                    OperatingSystems: 2, Browser: 2, Region: 1, TrafficType: 1, 
+                    VisitorType: "New_Visitor",  // Format String obligatoire
+                    Weekend: 0
+                });
+            }
+        });
+
+        async function triggerIAService(payload) {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if(response.ok) {
+                    const data = await response.json();
+                    applyIAMarketingStrategy(data.trigger_code);
+                }
+            } catch (err) {
+                console.warn("Moteur de prédiction local hors ligne.");
+            }
+        }
+
+        async function checkEngineStatus() {
+            const statusDot = document.getElementById('engine-status-dot');
+            const statusText = document.getElementById('engine-status-text');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'active') {
+                        statusDot.className = "inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5";
+                        statusText.innerHTML = `Live Tracking Engine: <span class="font-bold text-emerald-600">Opérationnel</span>`;
+                    } else {
+                        statusDot.className = "inline-block w-2 h-2 rounded-full bg-amber-500 mr-1.5";
+                        statusText.innerHTML = `Live Tracking Engine: <span class="font-bold text-amber-600">Instable</span>`;
+                    }
+                } else {
+                    statusDot.className = "inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5";
+                    statusText.innerHTML = `Live Tracking Engine: <span class="font-bold text-rose-600">Erreur Serveur</span>`;
+                }
+            } catch (err) {
+                statusDot.className = "inline-block w-2 h-2 rounded-full bg-rose-500 mr-1.5";
+                statusText.innerHTML = `Live Tracking Engine: <span class="font-bold text-rose-600">Hors ligne</span>`;
+            }
+        }
+
+        function applyIAMarketingStrategy(triggerCode) {
+            const banner = document.getElementById('social-proof-banner');
+            if (triggerCode === 'SHOW_SOCIAL_PROOF') {
+                banner.classList.remove('hidden');
+            } else if (triggerCode === 'SHOW_EXIT_COUPON') {
+                banner.classList.add('hidden');
+                if (isEligibleForCoupon && !hasCouponShown) {
+                    hasCouponShown = true; 
+                    Swal.fire({
+                        title: '⏳ Offre Exclusive Privilège',
+                        text: 'Bénéficiez de -10% immédiats sur l\'ensemble de notre catalogue matériel avec le code d\'activation : SAAS10',
+                        icon: 'info',
+                        confirmButtonText: 'Valider l\'offre',
+                        confirmButtonColor: '#2563eb'
+                    });
+                }
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function toggleCartModal() {
+            document.getElementById('cart-modal').classList.toggle('hidden');
+        }
+
+        function updateCartUI() {
+            const badge = document.getElementById('cart-badge');
+            const container = document.getElementById('cart-items-container');
+            const totalEl = document.getElementById('cart-total');
+            
+            if(cart.length > 0) {
+                badge.innerText = cart.reduce((acc, item) => acc + item.quantity, 0);
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if(cart.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-center py-8">Votre panier est vide.</p>`;
+                totalEl.innerText = "0,00 €";
+                metrics.pageValues = 0.0;
+                return;
+            }
+
+            let total = 0;
+            container.innerHTML = cart.map(item => {
+                total += item.price * item.quantity;
+                return `
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">${item.name}</h4>
+                            <p class="text-xs text-slate-500">${item.price} € x ${item.quantity}</p>
+                        </div>
+                        <span class="font-extrabold text-sm text-slate-800">${item.price * item.quantity} €</span>
+                    </div>
+                `;
+            }).join('');
+
+            totalEl.innerText = `${total.toLocaleString('fr-FR')},00 €`;
+            metrics.pageValues = total / 10;
+        }
+
+        function addToCart(id, name, price) {
+            metrics.addCount++;
+            const existingItem = cart.find(item => item.id === id);
+            if(existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({id, name, price, quantity: 1});
+            }
+            updateCartUI();
+            
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'success',
+                title: 'Panier mis à jour', showConfirmButton: false, timer: 1000
+            });
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartUI();
+        }
+
+        function checkoutSimulation() {
+            Swal.fire({
+                title: 'Succès',
+                text: 'Données de transaction synchronisées avec le service central.',
+                icon: 'success',
+                confirmButtonColor: '#2563eb'
+            });
+            clearCart();
+            toggleCartModal();
+        }
+
+        // Démarrage des processus cycliques
+        setInterval(checkEngineStatus, 2000);
+        checkEngineStatus();
+
+        // Rendu de la boutique au chargement initial
+        renderProducts('all');
+    </script>
+</body>
+</html>
